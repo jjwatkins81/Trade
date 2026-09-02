@@ -6,15 +6,20 @@ A simple, self-hosted dashboard for a quick daily read on market conditions:
   breadth, VIX, and the gamma regime.
 - **Key indicators** — SPX, NDX, QQQ, SPY, DJI, IWM, VIX, 10Y yield.
 - **Gamma Exposure (GEX)** — an estimate of dealer gamma positioning for
-  SPY/QQQ, used as a volatility regime indicator (negative gamma = hedging
-  flow tends to amplify moves; positive gamma = it tends to dampen them).
+  SPY/QQQ/IWM by default, used as a volatility regime indicator (negative
+  gamma = hedging flow tends to amplify moves; positive gamma = it tends to
+  dampen them). Add any other ticker from the app to check GEX on a stock
+  you actually trade -- just note single-stock GEX is noisier than index
+  GEX, since less liquid options mean thinner open interest and less
+  consistent dealer hedging.
 - **News & sentiment** — recent financial headlines from free RSS feeds,
   scored with VADER sentiment, with a "market-moving" filter for
   Fed/inflation/jobs/earnings-type stories.
 
 This is intentionally simple and self-contained: no accounts, no paid data
 subscriptions, no database. Everything is fetched live each time you load
-the page (and cached briefly to stay fast).
+the page (and cached briefly to stay fast) -- or flip on "Auto-refresh every
+1 min" to have it pull fresh data on a timer without you touching anything.
 
 ## Setup
 

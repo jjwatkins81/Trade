@@ -13,9 +13,11 @@ INDICATORS = [
     ("10Y Yield", "^TNX"),
 ]
 
-# Underlyings we can compute gamma exposure for. Kept small since options
-# chains are the heaviest thing this app fetches.
-GEX_TICKERS = ["SPY", "QQQ"]
+# Default underlyings for gamma exposure: the most liquid broad-market
+# proxies, where the GEX estimate is most reliable (deep open interest,
+# consistent dealer hedging). Users can add any other ticker in the app;
+# single-stock GEX is noisier the less liquid the options market is.
+GEX_TICKERS = ["SPY", "QQQ", "IWM"]
 
 # Only pull expirations within this many days out, and cap how many we pull,
 # to keep the dashboard responsive (gamma exposure is dominated by near-dated
