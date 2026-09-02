@@ -26,9 +26,11 @@ echo.
 echo Done. Your executable is at dist\MarketDashboard.exe
 echo Double-click it, or run it from a terminal, to launch the dashboard --
 echo it starts a local server and opens your browser automatically.
+pause
 goto :eof
 
 :error
 echo.
 echo Build failed -- see the output above.
+pause
 exit /b 1
