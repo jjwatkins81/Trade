@@ -20,6 +20,14 @@ unpacking itself to a temp folder); later launches are faster.
 Windows SmartScreen will likely warn about an unrecognized publisher, since
 this isn't code-signed. Click "More info" -> "Run anyway".
 
+**"Python was not found" / opens the Microsoft Store:** that's Windows'
+built-in `python.exe` stub, not a real Python install shadowing it. Install
+Python from https://www.python.org/downloads/windows/ and check "Add
+python.exe to PATH" during setup, then run the script again. If Python is
+already installed and you still see this, the stub is intercepting it first
+-- turn it off under Settings > Apps > Advanced app settings > App execution
+aliases (toggle off `python.exe` and `python3.exe`).
+
 ## macOS / Linux
 
 ```
