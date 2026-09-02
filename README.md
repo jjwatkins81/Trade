@@ -25,6 +25,12 @@ streamlit run app.py
 
 Then open the local URL Streamlit prints (usually http://localhost:8501).
 
+### Or: run it as a standalone executable (no Python required)
+
+See [`packaging/README.md`](packaging/README.md) to build a single `.exe`
+(Windows) or binary (macOS/Linux) that bundles everything -- just
+double-click it and it opens the dashboard in your browser.
+
 ## How it works
 
 | Panel | Source | Notes |

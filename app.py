@@ -84,7 +84,7 @@ with col_breakdown:
         f"""
 - **News sentiment** ({news_score:+.2f}): average tone of the latest {len(headlines)} financial headlines
 - **Market breadth** ({breadth_score:+.2f}): {"more" if breadth_score > 0 else "fewer"} tracked indexes up than down today
-- **VIX** ({f"{vix_quote.price:.1f}" if vix_quote else "n/a"}): level + today's move
+- **VIX** ({f"{vix_quote.price:.1f}" if vix_quote and vix_quote.price == vix_quote.price else "n/a"}): level + today's move
 - **Gamma regime**: {regime_label(primary_gex.net_gex) if primary_gex else "unavailable"} on {GEX_TICKERS[0]}
         """
     )

@@ -3,3 +3,8 @@ __pycache__/
 .venv/
 venv/
 .streamlit/secrets.toml
+
+# PyInstaller build output (see packaging/README.md to build these)
+build/
+dist/
+*.spec
