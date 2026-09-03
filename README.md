@@ -15,6 +15,11 @@ A simple, self-hosted dashboard for a quick daily read on market conditions:
 - **News & sentiment** — recent financial headlines from free RSS feeds,
   scored with VADER sentiment, with a "market-moving" filter for
   Fed/inflation/jobs/earnings-type stories.
+- **Strategy backtester** — test a rule-based strategy (SMA/EMA crossover,
+  RSI mean reversion, MACD, Bollinger Bands, or buy & hold) against any
+  ticker's historical prices, with buy/sell markers, an equity curve vs.
+  buy & hold, a trade log, and performance metrics (return, CAGR, max
+  drawdown, Sharpe, win rate).
 
 This is intentionally simple and self-contained: no accounts, no paid data
 subscriptions, no database. Everything is fetched live each time you load
@@ -44,6 +49,7 @@ double-click it and it opens the dashboard in your browser.
 | News | RSS feeds (Yahoo Finance, CNBC, MarketWatch, Investing.com) | See `src/config.py` to add/remove feeds |
 | Sentiment | VADER (`vaderSentiment`) | Lightweight lexicon-based scoring of headlines |
 | GEX | `yfinance` options chains + Black-Scholes gamma | See `src/gex.py` docstring for the methodology and its assumptions |
+| Backtester | `yfinance` daily history | See `src/backtest.py` for the strategy implementations and simulation logic |
 
 ### On GEX specifically
 
@@ -72,10 +78,12 @@ Edit `src/config.py` to change:
 
 Kept out of this first pass on purpose, to keep things simple:
 
-- Historical charts / trend lines instead of just current snapshot
 - Watchlist for individual positions, not just index-level indicators
 - Alerts (e.g. notify when gamma flips negative, or VIX crosses a threshold)
 - Swap free RSS/yfinance for a paid data provider if reliability becomes an issue
+- Custom/combined strategies in the backtester (currently a fixed menu of
+  single-indicator strategies), position sizing beyond fully-in/fully-out,
+  and intraday intervals
 
 ## Disclaimer
 
