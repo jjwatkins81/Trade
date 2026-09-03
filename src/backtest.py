@@ -72,6 +72,43 @@ def bollinger_bands(
     return mid - num_std * std, mid, mid + num_std * std
 
 
+def rolling_vwap(df: pd.DataFrame, window: int = 20) -> pd.Series:
+    """Rolling volume-weighted average price over a trailing window of bars.
+
+    Uses the typical price (H+L+C)/3 per bar, weighted by that bar's volume.
+    This is a *rolling* VWAP (not a session-anchored intraday VWAP), which is
+    the sensible reading of "VWAP" on daily bars.
+    """
+    typical_price = (df["High"] + df["Low"] + df["Close"]) / 3
+    price_volume = typical_price * df["Volume"]
+    return price_volume.rolling(window).sum() / df["Volume"].rolling(window).sum()
+
+
+def rolling_poc(df: pd.DataFrame, window: int = 20, bins: int = 24) -> pd.Series:
+    """Rolling volume-profile Point of Control: the price bin with the most
+    traded volume over a trailing window of bars, recomputed at each bar
+    using only data available up to (and including) that bar.
+    """
+    close = df["Close"]
+    volume = df["Volume"]
+    poc = pd.Series(np.nan, index=df.index)
+
+    for i in range(window - 1, len(df)):
+        prices = close.iloc[i - window + 1 : i + 1].to_numpy()
+        vols = volume.iloc[i - window + 1 : i + 1].to_numpy()
+        lo, hi = prices.min(), prices.max()
+        if hi == lo:
+            poc.iloc[i] = lo
+            continue
+        edges = np.linspace(lo, hi, bins + 1)
+        bin_idx = np.clip(np.digitize(prices, edges) - 1, 0, bins - 1)
+        vol_by_bin = np.bincount(bin_idx, weights=vols, minlength=bins)
+        top_bin = vol_by_bin.argmax()
+        poc.iloc[i] = (edges[top_bin] + edges[top_bin + 1]) / 2
+
+    return poc
+
+
 # ---------------------------------------------------------------------------
 # Strategies -- each returns a position series: 1.0 = fully long, 0.0 = flat
 # ---------------------------------------------------------------------------
@@ -115,6 +152,14 @@ def strategy_bollinger_reversion(
     position[close < lower] = 1.0
     position[close > mid] = 0.0
     return position.ffill().fillna(0.0)
+
+
+def strategy_vwap_poc_crossover(
+    df: pd.DataFrame, vwap_window: int = 20, profile_window: int = 20, bins: int = 24
+) -> pd.Series:
+    vwap = rolling_vwap(df, vwap_window)
+    poc = rolling_poc(df, profile_window, bins)
+    return (vwap > poc).astype(float)
 
 
 def strategy_buy_and_hold(df: pd.DataFrame) -> pd.Series:
@@ -176,6 +221,19 @@ STRATEGIES: dict[str, dict] = {
         "description": (
             "Buy when price closes below the lower band (oversold vs. its own "
             "range); sell once it closes back above the middle band."
+        ),
+    },
+    "VWAP / Volume Profile POC Crossover": {
+        "fn": strategy_vwap_poc_crossover,
+        "params": {
+            "vwap_window": ("VWAP lookback (days)", 5, 100, 20),
+            "profile_window": ("Volume profile lookback (days)", 10, 100, 20),
+            "bins": ("Volume profile price bins", 10, 50, 24),
+        },
+        "description": (
+            "Buy when the rolling VWAP crosses above the rolling volume-profile "
+            "Point of Control (the price level with the most traded volume over "
+            "the lookback window); sell when VWAP crosses back below it."
         ),
     },
     "Buy & Hold (benchmark)": {
