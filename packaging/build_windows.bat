@@ -37,12 +37,14 @@ if errorlevel 1 goto :error
 %PY% -m PyInstaller --noconfirm --onefile --name MarketDashboard ^
   --add-data "app.py;." ^
   --add-data "src;src" ^
+  --add-data "pages;pages" ^
   --collect-all streamlit ^
   --copy-metadata streamlit ^
   --collect-all vaderSentiment ^
   --collect-all plotly ^
   --collect-all yfinance ^
   --collect-all feedparser ^
+  --collect-all pywinauto ^
   launcher.py
 if errorlevel 1 goto :error
 

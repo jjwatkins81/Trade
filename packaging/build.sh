@@ -10,6 +10,7 @@ python3 -m pip install -r requirements.txt -r packaging/requirements-build.txt
 python3 -m PyInstaller --noconfirm --onefile --name MarketDashboard \
   --add-data "app.py:." \
   --add-data "src:src" \
+  --add-data "pages:pages" \
   --collect-all streamlit \
   --copy-metadata streamlit \
   --collect-all vaderSentiment \

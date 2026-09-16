@@ -6,3 +6,4 @@ pandas>=2.2
 numpy>=1.26
 scipy>=1.13
 plotly>=5.22
+pywinauto>=0.6.8; sys_platform == "win32"

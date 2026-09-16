@@ -15,6 +15,10 @@ A simple, self-hosted dashboard for a quick daily read on market conditions:
 - **News & sentiment** — recent financial headlines from free RSS feeds,
   scored with VADER sentiment, with a "market-moving" filter for
   Fed/inflation/jobs/earnings-type stories.
+- **Ticker Research** (separate page) — price/fundamentals, analyst
+  ratings, and recent news for a single ticker, either typed in manually or
+  auto-detected from whichever symbol is currently selected in
+  thinkorswim (Windows only — see "thinkorswim setup" below).
 
 This is intentionally simple and self-contained: no accounts, no paid data
 subscriptions, no database. Everything is fetched live each time you load
@@ -28,7 +32,44 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Then open the local URL Streamlit prints (usually http://localhost:8501).
+Then open the local URL Streamlit prints (usually http://localhost:8501), and
+use the page picker in the sidebar to switch to **Ticker Research**.
+
+### thinkorswim setup (optional, Windows only)
+
+The Ticker Research page can auto-detect whichever symbol is currently
+selected in thinkorswim, so you don't have to type it in every time you
+switch tickers. This does **not** use thinkorswim's DDE feature — DDE only
+lets you pull live fields (price, bid/ask, ...) for a symbol you already
+know, not "which symbol is on screen right now". Instead it reads the
+symbol directly off the thinkorswim window using Windows UI Automation.
+
+Because thinkorswim is a Java/Swing application, Windows can't see inside
+its window by default — you need to turn on the **Java Access Bridge**
+first, which bridges Swing's own accessibility tree into Windows':
+
+1. Find `jabswitch.exe` inside thinkorswim's own bundled Java runtime
+   (typically somewhere under `%LOCALAPPDATA%\thinkorswim` — search for
+   `jabswitch.exe` if you can't find it) and run:
+   ```
+   jabswitch.exe /enable
+   ```
+2. Restart thinkorswim.
+3. `pip install pywinauto` (already in `requirements.txt` on Windows).
+4. With thinkorswim open on the panel you want to track (e.g. a Quote
+   panel, a linked Chart, Active Trader), run:
+   ```
+   python tos_discover.py
+   ```
+   This dumps thinkorswim's control tree. If it only shows one window with
+   no children, the Access Bridge isn't enabled yet — go back to step 1.
+5. Find the symbol box you want to track in that output and copy its
+   `auto_id` (or another distinguishing property) into `TOS_SYMBOL_CONTROL`
+   in `src/config.py`.
+6. Run the app and toggle "🔗 Watch thinkorswim" on the Ticker Research page.
+
+If you'd rather skip all of this, the manual symbol box on that page works
+without any thinkorswim setup at all.
 
 ### Or: run it as a standalone executable (no Python required)
 
@@ -44,6 +85,8 @@ double-click it and it opens the dashboard in your browser.
 | News | RSS feeds (Yahoo Finance, CNBC, MarketWatch, Investing.com) | See `src/config.py` to add/remove feeds |
 | Sentiment | VADER (`vaderSentiment`) | Lightweight lexicon-based scoring of headlines |
 | GEX | `yfinance` options chains + Black-Scholes gamma | See `src/gex.py` docstring for the methodology and its assumptions |
+| Ticker Research (price/fundamentals, analyst ratings, news) | `yfinance` | Free, no API key needed |
+| Ticker Research (symbol auto-detect) | Windows UI Automation via `pywinauto` | Windows only; needs Java Access Bridge enabled, see "thinkorswim setup" |
 
 ### On GEX specifically
 
@@ -66,6 +109,8 @@ Edit `src/config.py` to change:
 - `GEX_TICKERS` — underlyings to compute gamma exposure for
 - `NEWS_FEEDS` — RSS sources
 - `SENTIMENT_WEIGHTS` — how the composite score blends news/breadth/VIX/gamma
+- `TOS_WINDOW_TITLE_RE` / `TOS_SYMBOL_CONTROL` — thinkorswim window/control
+  matching for symbol auto-detection (see "thinkorswim setup" above)
 - cache TTLs, GEX expiration window, etc.
 
 ## Roadmap ideas

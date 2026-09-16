@@ -70,6 +70,13 @@ def _is_market_moving(title: str) -> bool:
     return any(kw in lowered for kw in MARKET_MOVING_KEYWORDS)
 
 
+# Public aliases for reuse outside this module (e.g. per-ticker news scoring
+# in src/ticker_research.py), keeping the finance-tuned VADER lexicon as the
+# single source of truth for headline sentiment.
+score_headline = _score
+is_market_moving = _is_market_moving
+
+
 def _parse_published(entry) -> datetime | None:
     for field in ("published_parsed", "updated_parsed"):
         value = entry.get(field)

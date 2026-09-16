@@ -40,6 +40,27 @@ MAX_HEADLINES_PER_FEED = 15
 CACHE_TTL_QUOTES = 60
 CACHE_TTL_NEWS = 15 * 60
 CACHE_TTL_OPTIONS = 10 * 60
+CACHE_TTL_TICKER_RESEARCH = 60
+
+# --- thinkorswim symbol watching (Windows only; see README "thinkorswim
+# setup") -----------------------------------------------------------------
+# thinkorswim doesn't expose "which symbol is currently selected" over DDE
+# or any API -- DDE only pulls live fields (LAST, BID, ...) for a symbol you
+# already know. To read the on-screen symbol we use Windows UI Automation
+# instead, which requires the Java Access Bridge to be enabled (ToS is a
+# Java/Swing app) and the exact control below to match your layout.
+#
+# Run `python tos_discover.py` with thinkorswim open to dump its control
+# tree and find the right values for TOS_SYMBOL_CONTROL -- they vary by
+# which panel (Quote, Chart, Active Trader, ...) you want to track and by
+# ToS version/layout. The values below are placeholders and likely won't
+# match your setup out of the box.
+TOS_WINDOW_TITLE_RE = ".*thinkorswim.*"
+TOS_SYMBOL_CONTROL = {
+    "auto_id": "symbolTextField",
+    "control_type": "Edit",
+}
+TOS_POLL_INTERVAL_SECONDS = 2
 
 # Composite sentiment score weights (must sum to 1.0).
 SENTIMENT_WEIGHTS = {

@@ -22,6 +22,9 @@ import scipy.stats  # noqa: F401
 import vaderSentiment.vaderSentiment  # noqa: F401
 import yfinance  # noqa: F401
 
+if sys.platform == "win32":
+    import pywinauto  # noqa: F401
+
 
 def _resource_path(relative: str) -> str:
     """Resolve a path next to this script, whether frozen by PyInstaller or not."""
