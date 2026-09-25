@@ -5,10 +5,12 @@ Run with:  streamlit run app.py
 
 from datetime import datetime, timezone
 
+import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
 from src.config import (
+    CACHE_TTL_QUOTES,
     CACHE_TTL_SCREENER,
     GEX_TICKERS,
     INDICATORS,
@@ -16,9 +18,10 @@ from src.config import (
     SCREENER_MIN_MOVE,
 )
 from src.gex import compute_gex, regime_label
+from src.intraday import EASTERN, MAX_DAYS_BY_INTERVAL, daily_session_summary, fetch_intraday
 from src.market_data import fetch_quotes, market_breadth_score, quotes_to_dataframe
-from src.screener import screen
 from src.news import average_sentiment, fetch_headlines, sentiment_label
+from src.screener import screen
 from src.sentiment import composite_sentiment
 
 st.set_page_config(page_title="Market Sentiment Dashboard", layout="wide")
@@ -272,4 +275,70 @@ if st.button("Run screener"):
         st.caption(
             "Past volatility isn't a forecast. Universe is a curated list of liquid "
             "NYSE large caps (see SCREENER_UNIVERSE in src/config.py)."
+        )
+
+
+# ---------------------------------------------------------------------------
+# Intraday history incl. pre-market / after-hours
+# ---------------------------------------------------------------------------
+st.divider()
+st.header("🌅 Pre-Market to Close History")
+st.markdown(
+    "Intraday bars including extended hours (Eastern Time): **pre-market** 4:00-9:30, "
+    "**regular** 9:30-16:00, **after-hours** 16:00-20:00. Pre-market volume is thin, "
+    "so prices there can be jumpier than in regular hours."
+)
+
+i1, i2, i3 = st.columns(3)
+intraday_symbol = i1.text_input("Ticker", value="CAT", key="intraday_symbol").strip().upper()
+intraday_interval = i2.selectbox("Bar size", list(MAX_DAYS_BY_INTERVAL), index=2)
+intraday_days = i3.slider(
+    "Days back", min_value=1, max_value=MAX_DAYS_BY_INTERVAL[intraday_interval], value=5,
+    help="Yahoo keeps 1-minute bars ~7 days and 2-30 minute bars ~60 days.",
+)
+
+
+@st.cache_data(ttl=CACHE_TTL_QUOTES, show_spinner=False)
+def cached_intraday(symbol: str, days: int, interval: str):
+    return fetch_intraday(symbol, days, interval)
+
+
+if intraday_symbol:
+    with st.spinner(f"Loading {intraday_symbol} intraday history..."):
+        bars = cached_intraday(intraday_symbol, intraday_days, intraday_interval)
+
+    if bars.empty:
+        st.warning(f"Couldn't load intraday data for {intraday_symbol} right now.")
+    else:
+        candle_fig = go.Figure(
+            go.Candlestick(
+                x=bars.index, open=bars["Open"], high=bars["High"],
+                low=bars["Low"], close=bars["Close"], name=intraday_symbol,
+            )
+        )
+        # Shade the extended-hours stretches of each day.
+        for day in sorted(set(bars.index.date)):
+            for start, end, color in (("04:00", "09:30", "rgba(100,149,237,0.12)"),
+                                      ("16:00", "20:00", "rgba(160,160,160,0.15)")):
+                candle_fig.add_vrect(
+                    x0=pd.Timestamp(f"{day} {start}", tz=EASTERN),
+                    x1=pd.Timestamp(f"{day} {end}", tz=EASTERN),
+                    fillcolor=color, line_width=0, layer="below",
+                )
+        candle_fig.update_xaxes(
+            rangebreaks=[dict(bounds=["sat", "mon"]), dict(bounds=[20, 4], pattern="hour")]
+        )
+        candle_fig.update_layout(
+            title=f"{intraday_symbol} -- blue = pre-market, gray = after-hours (ET)",
+            xaxis_rangeslider_visible=False, height=450, yaxis_title="Price",
+        )
+        st.plotly_chart(candle_fig, width="stretch")
+
+        st.subheader("Pre-market vs. the open, by day")
+        st.dataframe(
+            daily_session_summary(bars).iloc[::-1].round(2), hide_index=True, width="stretch"
+        )
+        st.caption(
+            "Gap = regular-session open minus prior regular-session close. "
+            "Rows missing pre-market data had no extended-hours trades reported."
         )

@@ -19,6 +19,10 @@ A simple, self-hosted dashboard for a quick daily read on market conditions:
   whose average true range is at least a given dollar move (default $10/day).
   Also runs from the command line:
   `python -m src.screener --max-price 500 --min-move 10`
+- **Pre-Market to Close History** — intraday candles for any ticker including
+  pre-market (4:00-9:30 ET) and after-hours (16:00-20:00 ET), plus a per-day
+  table of pre-market high/low/last vs. the prior close and the open (gap).
+  Also from the command line: `python -m src.intraday CAT --days 5 --interval 5m`
 
 This is intentionally simple and self-contained: no accounts, no paid data
 subscriptions, no database. Everything is fetched live each time you load
