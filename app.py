@@ -8,9 +8,16 @@ from datetime import datetime, timezone
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.config import GEX_TICKERS, INDICATORS
+from src.config import (
+    CACHE_TTL_SCREENER,
+    GEX_TICKERS,
+    INDICATORS,
+    SCREENER_MAX_PRICE,
+    SCREENER_MIN_MOVE,
+)
 from src.gex import compute_gex, regime_label
 from src.market_data import fetch_quotes, market_breadth_score, quotes_to_dataframe
+from src.screener import screen
 from src.news import average_sentiment, fetch_headlines, sentiment_label
 from src.sentiment import composite_sentiment
 
@@ -230,3 +237,39 @@ buy or sell to stay hedged as the underlying price moves.
 
 
 render_dashboard()
+
+
+# ---------------------------------------------------------------------------
+# Volatility screener -- outside the auto-refresh fragment since it downloads
+# history for ~90 tickers; it only runs when asked.
+# ---------------------------------------------------------------------------
+st.divider()
+st.header("🎯 $10-Mover Screener (NYSE)")
+st.markdown(
+    "NYSE stocks under a price cap whose **average true range (ATR)** -- how far "
+    "the stock typically travels in a day, gaps included -- is at least the "
+    "dollar move you're after. A $10 move is ~2% on a $500 stock but ~5% on a "
+    "$200 stock."
+)
+
+f1, f2 = st.columns(2)
+max_price = f1.number_input("Max price ($)", min_value=1.0, value=SCREENER_MAX_PRICE, step=25.0)
+min_move = f2.number_input("Min typical daily move ($)", min_value=0.5, value=SCREENER_MIN_MOVE, step=1.0)
+
+
+@st.cache_data(ttl=CACHE_TTL_SCREENER, show_spinner=False)
+def cached_screen(max_price: float, min_move: float):
+    return screen(max_price=max_price, min_move=min_move)
+
+
+if st.button("Run screener"):
+    with st.spinner("Scanning NYSE universe..."):
+        results = cached_screen(max_price, min_move)
+    if results.empty:
+        st.info("No matches right now (or market data is unavailable). Try a lower minimum move.")
+    else:
+        st.dataframe(results.round(2), hide_index=True, width="stretch")
+        st.caption(
+            "Past volatility isn't a forecast. Universe is a curated list of liquid "
+            "NYSE large caps (see SCREENER_UNIVERSE in src/config.py)."
+        )

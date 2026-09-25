@@ -15,6 +15,10 @@ A simple, self-hosted dashboard for a quick daily read on market conditions:
 - **News & sentiment** — recent financial headlines from free RSS feeds,
   scored with VADER sentiment, with a "market-moving" filter for
   Fed/inflation/jobs/earnings-type stories.
+- **$10-Mover Screener** — NYSE stocks under a price cap (default $500)
+  whose average true range is at least a given dollar move (default $10/day).
+  Also runs from the command line:
+  `python -m src.screener --max-price 500 --min-move 10`
 
 This is intentionally simple and self-contained: no accounts, no paid data
 subscriptions, no database. Everything is fetched live each time you load
@@ -65,6 +69,7 @@ Edit `src/config.py` to change:
 - `INDICATORS` — tickers shown in the Key Indicators panel
 - `GEX_TICKERS` — underlyings to compute gamma exposure for
 - `NEWS_FEEDS` — RSS sources
+- `SCREENER_UNIVERSE`, `SCREENER_MAX_PRICE`, `SCREENER_MIN_MOVE` — what the $10-mover screener scans and its defaults
 - `SENTIMENT_WEIGHTS` — how the composite score blends news/breadth/VIX/gamma
 - cache TTLs, GEX expiration window, etc.
 

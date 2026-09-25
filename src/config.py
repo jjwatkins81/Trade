@@ -48,3 +48,33 @@ SENTIMENT_WEIGHTS = {
     "vix": 0.2,
     "gamma": 0.1,
 }
+
+# Volatility screener: NYSE stocks under SCREENER_MAX_PRICE whose average
+# true range over the lookback is at least SCREENER_MIN_MOVE dollars.
+SCREENER_MAX_PRICE = 500.0
+SCREENER_MIN_MOVE = 10.0
+SCREENER_LOOKBACK_DAYS = 30
+CACHE_TTL_SCREENER = 30 * 60
+
+# Liquid NYSE-listed large caps to scan. Anything over the price cap is
+# simply filtered out, so it's fine for this list to include pricier names
+# (they'll show up if they split or pull back). Listings occasionally move
+# between exchanges; the screener re-checks each match's exchange live.
+SCREENER_UNIVERSE = [
+    # Industrials / aerospace / defense
+    "CAT", "DE", "GE", "GEV", "BA", "LMT", "NOC", "GD", "RTX", "HON",
+    "UNP", "PH", "ETN", "TT", "ROK", "EME", "URI", "VRT", "HWM", "FDX",
+    # Financials
+    "GS", "JPM", "MS", "AXP", "V", "MA", "SPGI", "MCO", "MSCI", "BLK",
+    "TRV", "CB", "PGR", "MMC", "AON", "AMP", "COF",
+    # Health care
+    "UNH", "ELV", "CI", "HUM", "HCA", "TMO", "DHR", "SYK", "LLY", "JNJ",
+    "ABBV", "MRK", "ZTS", "MCK", "COR",
+    # Tech / communication (NYSE-listed)
+    "IBM", "ORCL", "CRM", "NOW", "ANET", "ACN", "SNOW", "HUBS", "DELL",
+    "TSM", "BABA", "SPOT", "MSI", "DIS",
+    # Consumer
+    "HD", "LOW", "MCD", "TGT", "DECK", "RCL", "NKE", "CVNA",
+    # Energy / materials
+    "CVX", "XOM", "COP", "SHW", "APD", "ECL", "NUE", "MLM", "VMC",
+]
